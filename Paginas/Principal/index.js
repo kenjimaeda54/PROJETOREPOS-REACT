@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Container, Form, SubmitButton, List, Button } from "./estilos";
 import { FaGithub, FaPlus, FaSpinner, FaList, FaTrash } from "react-icons/fa";
 import { useState, useCallback } from "react";
+import {Link} from "react-router-dom";
 
 import API from "../../Servicos";
 
@@ -113,7 +114,9 @@ function Principal() {
               </Button>
               {item.name}
             </span>
-            <FaList size="14" />
+            <Link to={`/repositorio/${encodeURIComponent(item.name)}`}>
+              <FaList size="14" />
+            </Link>
           </li>
         ))}
       </List>
