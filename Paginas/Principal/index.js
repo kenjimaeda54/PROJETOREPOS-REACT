@@ -40,7 +40,6 @@ function Principal() {
             throw new Error("você precisa digitar algo");
           }
           const response = await API.get(`repos/${newRepo}`); //newRepo posivelmente e do API.
-          console.log(response.data); //aqui você encherga o api, repos e da Api
           const verificar = formulario.find((repo) => repo.name === newRepo);
           if (verificar) {
             throw new Error("Repositorio duplicado");
