@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
 import API from "../../Servicos/index";
-import { Container, Owner, IssuesList, BackButton, Loading } from "./estilos";
+import {
+  Container,
+  Owner,
+  IssuesList,
+  BackButton,
+  Loading,
+  Allpage,
+  StateButton,
+} from "./estilos";
 import { FaArrowLeft } from "react-icons/fa";
 
 function Principal({ match }) {
@@ -9,6 +17,29 @@ function Principal({ match }) {
   const [primeiro, setPrimeiro] = useState({});
   const [segundo, setSegundo] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [listEstado, setListEstado] = useState([
+    { state: "all", label: "Todas", active: true },
+    { state: "closed", label: "Fechado", active: false },
+    { state: "open", label: "Abertos", active: false },
+  ]);
+  const [filter, setFilter] = useState(0);
+
+  useEffect(() => {
+    async function estado() {
+      const pegar = decodeURIComponent(match.params.repositorio);
+      const resposta = await API.get(`/repos/${pegar}/issues`, {
+        params: {
+          page, //page vai setar o nome page da APi.
+          per_page: 5,
+          state: listEstado[filter].state,
+        },
+      });
+      setSegundo(resposta.data);
+    }
+
+    estado();
+  }, [match.params.repositorio, page, listEstado, filter]);
 
   useEffect(() => {
     async function carregar() {
@@ -18,7 +49,7 @@ function Principal({ match }) {
         API.get(`/repos/${pegar}/issues`, {
           params: {
             per_page: 5,
-            state: "open",
+            state: listEstado.find((r) => r.active).state,
           },
         }),
       ]);
@@ -30,7 +61,15 @@ function Principal({ match }) {
     }
 
     carregar();
-  }, [match.params.repositorio]);
+  }, [match.params.repositorio, listEstado]);
+
+  function verficarEstado(acao) {
+    setPage(acao === "voltar" ? page - 1 : page + 1);
+  }
+
+  function verificaEstado(index) {
+    setFilter(index);
+  }
 
   if (loading) {
     return (
@@ -39,35 +78,60 @@ function Principal({ match }) {
       </Loading>
     );
   }
+
   // nosso metodo para comunicar o html com API esta em assync então leva um tempo
   // para pegar a resposta,por isso precisa colocar if(loading)... Enquanto estvier
   //carregando os dados não renderiza o html,"owner" é da API
+  //em ative={...} active e nome da props
   return (
     <Container>
       <BackButton to="/">
-        <FaArrowLeft size="14px" />
+        <FaArrowLeft sizer="14px" />
       </BackButton>
       <Owner>
         <img src={primeiro.owner.avatar_url} alt={primeiro.owner.login} />
         <h1>{primeiro.name}</h1>
-        <p> {primeiro.description}</p>
+        <p>{primeiro.description}</p>
       </Owner>
+      <StateButton active={filter}>
+        {listEstado.map((item, index) => (
+          <button
+            type="button"
+            onClick={() => {
+              verificaEstado(index);
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
+      </StateButton>
       <IssuesList>
-        {segundo.map((issue) => (
-          <li key={String(issue.id)}>
-            <a href={issue.html_url}>{issue.title}/</a>
+        {segundo.map((issues) => (
+          <li key={String(issues.id)}>
+            <img src={issues.user.avatar_url} alt={issues.user.login} />
             <div>
               <strong>
-                {issue.labels.map((label) => (
-                  <span key={String(label.id)}>{label.name}</span>
+                <a href={issues.html_url}>{issues.title}/</a>
+                {issues.labels.map((labels) => (
+                  <span key={String(labels.id)}>{labels.name}</span>
                 ))}
-
-                <p>{issue.user.login}</p>
               </strong>
             </div>
           </li>
         ))}
       </IssuesList>
+      <Allpage>
+        <button
+          type="button"
+          onClick={() => verficarEstado("voltar")}
+          disabled={page < 2}
+        >
+          Voltar
+        </button>
+        <button type="button" onClick={() => verficarEstado("proximo")}>
+          Proximo
+        </button>
+      </Allpage>
     </Container>
   );
 }

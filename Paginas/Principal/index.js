@@ -4,7 +4,7 @@ import { FaGithub, FaPlus, FaSpinner, FaList, FaTrash } from "react-icons/fa";
 import { useState, useCallback } from "react";
 import {Link} from "react-router-dom";
 
-import API from "../../Servicos";
+import API from "../../Servicos/index";
 
 function Principal() {
   const [newRepo, setNewRepo] = useState("");
@@ -18,6 +18,7 @@ function Principal() {
     if (consultar) {
       setFormulario(JSON.parse(consultar));
     }
+   
   }, []);
 
   //salvar os dados//atenção aqui e sempre um array,porque caso vcoê colocar outro
